@@ -64,6 +64,11 @@ spec:
             configMapKeyRef:
               name: reliza-client-configmap
               key: namespace
+        - name: SENDER_ID
+          valueFrom:
+            configMapKeyRef:
+              name: reliza-client-configmap
+              key: sender
         - name: RELIZA_API_ID
           valueFrom:
             secretKeyRef:
