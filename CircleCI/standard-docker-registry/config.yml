@@ -1,0 +1,77 @@
+version: 2
+jobs:
+  build-and-push-docker-reliza-hub:
+    machine:
+      image: ubuntu-1604:202004-01
+    steps:
+    - run:
+        name: Record build start
+        command: |
+          echo 'export BUILD_START=$(date -Iseconds)' >> $BASH_ENV
+          source $BASH_ENV
+    - checkout
+    - run:
+        name: Log into Docker Registry
+        command: echo "$CI_REGISTRY_PASSWORD" | docker login -u "$CI_REGISTRY_USER" --password-stdin
+    - run:
+        name: Get Version From Reliza Hub
+        command: |
+          echo "Getting version from Reliza Hub"
+          reliza_ver=$(docker run --rm relizaio/reliza-go-client getversion -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID -b $CIRCLE_BRANCH --metadata circleci$CIRCLE_BUILD_NUM)
+          full_ver=$(echo $reliza_ver | jq -r ".version")
+          echo "extracted full version: $full_ver"
+          short_ver=$(echo $reliza_ver | jq -r ".dockerTagSafeVersion")
+          echo "extracted docker tag safe version: $short_ver"
+          echo "export RLZ_FULL_VER=$full_ver" >> $BASH_ENV
+          echo "export RLZ_SHORT_VER=$short_ver" >> $BASH_ENV
+          source $BASH_ENV
+    - run:
+        name: Instantiate Reliza status as Rejected to handle possible build failure
+        command: echo "--status rejected " > reliza_command
+    - run:
+        name: Build docker image, run basic tests and push to Docker Registry
+        command: |
+          docker_tag_args=""
+          IFS="," read -ra DOCKER_TAGS <<< "latest,$RLZ_SHORT_VER"
+          for tag in "${DOCKER_TAGS[@]}"; do
+            docker_tag_args="$docker_tag_args -t $IMAGE_NAMESPACE/$IMAGE_NAME:$tag"
+          done
+          exit_code=0
+          docker build \
+            --build-arg CI_ENV=circleci$CIRCLE_BUILD_NUM --build-arg GIT_COMMIT=$CIRCLE_SHA1 --build-arg GIT_BRANCH=$CIRCLE_BRANCH \
+            --build-arg VERSION=$RLZ_FULL_VER -f ./Dockerfile \
+            $docker_tag_args \
+            . || exit_code=$(echo $?)
+          if [ $exit_code -eq 0 ]
+          then
+              # set reliza release status to completed
+              echo "--status completed " > reliza_command
+          fi
+          # push to registry and stream data to Reliza Hub
+          echo -n "--artid $IMAGE_NAMESPACE/$IMAGE_NAME:latest " >> reliza_command
+          echo -n "--artbuildid circleci$CIRCLE_BUILD_NUM circle build uri: $CIRCLE_BUILD_URL" >> reliza_command
+          echo -n "--artcimeta circleci " >> reliza_command
+          echo -n "--tagkey deployable " >> reliza_command
+          echo -n "--tagval true " >> reliza_command
+          echo -n "--arttype Docker " >> reliza_command
+          docker_sha_256=$(docker push $IMAGE_NAMESPACE/$IMAGE_NAME:latest | grep sha256 | cut -f 3 -d ' ')
+          if [ $docker_sha_256 != "" ]
+          then
+            echo -n "--artdigests $docker_sha_256 " >> reliza_command
+          fi
+          echo -n "-b $CIRCLE_BRANCH --vcstype git --commit $CIRCLE_SHA1 -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID -v $RLZ_FULL_VER " >> reliza_command
+          echo -n "--date $(git log -1 --date=iso-strict --pretty='%ad') " >> reliza_command
+          # push versioned tag
+          docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$RLZ_SHORT_VER
+          echo -n "--datestart $BUILD_START " >> reliza_command
+          echo -n "--dateend $(date -Iseconds) " >> reliza_command
+          # debug
+          cat reliza_command
+          # send data to Reliza Hub
+          docker run --rm relizaio/reliza-go-client addrelease $(cat reliza_command)
+        no_output_timeout: 10m
+workflows:
+  build-and-deploy:
+    jobs:
+    - build-and-push-docker-reliza-hub
+  version: 2
