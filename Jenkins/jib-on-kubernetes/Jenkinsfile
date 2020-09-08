@@ -45,7 +45,7 @@ spec:
         container('dind') {
             withCredentials([usernamePassword(credentialsId: 'da8b0f12-0431-4939-9888-3481b95ab7d1', usernameVariable: 'RELIZA_API_ID', passwordVariable: 'RELIZA_API_KEY')]) {
                 script {
-                    RELIZA_VER = sh(script: 'docker run --rm relizaio/reliza-go-client -u https://test.relizahub.com getversion -k $RELIZA_API_KEY -i $RELIZA_API_ID -b $GIT_BRANCH --metadata Jenkins --project ebc33386-81e1-42a4-8c69-223b013862a9', returnStdout: true).trim()
+                    RELIZA_VER = sh(script: 'docker run --rm relizaio/reliza-go-client getversion -k $RELIZA_API_KEY -i $RELIZA_API_ID -b $GIT_BRANCH --metadata Jenkins --project ebc33386-81e1-42a4-8c69-223b013862a9', returnStdout: true).trim()
                 }
             }
         }
@@ -116,7 +116,6 @@ spec:
                     }
                 }
             sh '''
-                echo -n "-u https://test.relizahub.com " >> reliza_command
                 echo -n "-b $GIT_BRANCH " >> reliza_command
                 echo -n "--vcstype git " >> reliza_command
                 echo -n "--vcsuri $GIT_URL " >> reliza_command
