@@ -17,7 +17,7 @@ jobs:
         name: Get Version From Reliza Hub
         command: |
           echo "Getting version from Reliza Hub"
-          reliza_ver=$(docker run --rm relizaio/reliza-go-client getversion -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID -b $CIRCLE_BRANCH --metadata circleci$CIRCLE_BUILD_NUM)
+          reliza_ver=$(docker run --rm relizaio/reliza-cli getversion -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID -b $CIRCLE_BRANCH --metadata circleci$CIRCLE_BUILD_NUM)
           full_ver=$(echo $reliza_ver | jq -r ".version")
           echo "extracted full version: $full_ver"
           short_ver=$(echo $reliza_ver | jq -r ".dockerTagSafeVersion")
@@ -68,7 +68,7 @@ jobs:
           # debug
           cat reliza_command
           # send data to Reliza Hub
-          docker run --rm relizaio/reliza-go-client addrelease $(cat reliza_command)
+          docker run --rm relizaio/reliza-cli addrelease $(cat reliza_command)
         no_output_timeout: 10m
 workflows:
   build-and-deploy:
