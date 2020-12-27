@@ -1,19 +1,17 @@
-# DEPRECATED - use reliza-watcher.yaml
-
 apiVersion: v1
 kind: ServiceAccount
 metadata:
   labels:
-    app.kubernetes.io/name: reliza-client-pod-watcher
-    app.kubernetes.io/part-of: reliza-client
-  name: reliza-client-pod-watcher
+    app.kubernetes.io/name: reliza-watcher-sa
+    app.kubernetes.io/part-of: reliza-watcher
+  name: reliza-watcher-sa
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/name: reliza-client-pod-watcher-role
-  name: reliza-client-pod-watcher-role
+    app.kubernetes.io/name: reliza-watcher-role
+  name: reliza-watcher-cr
 rules:
 - apiGroups: [""]
   resources: ["pods", "namespaces"]
@@ -23,39 +21,39 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRoleBinding
 metadata:
   labels:
-    app.kubernetes.io/name: reliza-client-pod-watcher-binding
-    app.kubernetes.io/part-of: reliza-client
-  name: reliza-client-pod-watcher-binding
+    app.kubernetes.io/name: reliza-watcher-binding
+    app.kubernetes.io/part-of: reliza-watcher
+  name: reliza-watcher-binding
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: reliza-client-pod-watcher-role
+  name: reliza-watcher-role
 subjects:
 - kind: ServiceAccount
-  name: reliza-client-pod-watcher
-  namespace: reliza-client
+  name: reliza-watcher-sa
+  namespace: reliza-watcher
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app.kubernetes.io/name: reliza-client-watcher-deployment
-    app.kubernetes.io/part-of: reliza-client
-  name: reliza-client-watcher-deployment
+    app.kubernetes.io/name: reliza-watcher-deployment
+    app.kubernetes.io/part-of: reliza-watcher
+  name: reliza-watcher-deployment
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: reliza-client-watcher
+      app.kubernetes.io/name: reliza-watcher
   strategy:
     type: Recreate
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: reliza-client-watcher
+        app.kubernetes.io/name: reliza-watcher
     spec:
       containers:
-      - name: reliza-client-watcher
+      - name: reliza-watcher
         image: relizaio/reliza-watcher
         imagePullPolicy: Always
         env:
@@ -64,21 +62,21 @@ spec:
         - name: NAMESPACE
           valueFrom:
             configMapKeyRef:
-              name: reliza-client-configmap
+              name: reliza-watcher-configmap
               key: namespace
         - name: SENDER_ID
           valueFrom:
             configMapKeyRef:
-              name: reliza-client-configmap
+              name: reliza-watcher-configmap
               key: sender
         - name: RELIZA_API_ID
           valueFrom:
             secretKeyRef:
-              name: reliza-client-api-key
+              name: reliza-watcher-api-key
               key: reliza-api-id
         - name: RELIZA_API_KEY
           valueFrom:
             secretKeyRef:
-              name: reliza-client-api-key
+              name: reliza-watcher-api-key
               key: reliza-api-key
-      serviceAccountName: reliza-client-pod-watcher
+      serviceAccountName: reliza-watcher-sa
