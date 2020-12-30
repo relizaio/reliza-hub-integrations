@@ -1,0 +1,10 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: {{ include "reliza-watcher.fullname" . }}-{{ .Release.Namespace }}-cr
+  name: {{ include "reliza-watcher.fullname" . }}-{{ .Release.Namespace }}-cr
+rules:
+- apiGroups: [""]
+  resources: ["pods", "namespaces"]
+  verbs: ["get", "watch", "list"]
