@@ -7,7 +7,7 @@
 
 ```
 kubectl create ns reliza-watcher
-kubectl create secret generic reliza-watcher-api-key -n reliza-watcher --from-literal=reliza-api-id=<RELIZA_API_ID> --from-literal=reliza-api-key=<RELIZA_API_ID>
+kubectl create secret generic reliza-watcher-api-key -n reliza-watcher --from-literal=reliza-api-id=<RELIZA_API_ID> --from-literal=reliza-api-key=<RELIZA_API_KEY>
 kubectl create configmap reliza-watcher-configmap -n reliza-watcher --from-literal=namespace=allnamespaces --from-literal=sender=default
 kubectl apply -f https://raw.githubusercontent.com/relizaio/reliza-hub-integrations/master/kubernetes/reliza-watcher.yaml -n reliza-watcher
 ```
@@ -29,7 +29,7 @@ Create your Instance on [Reliza Hub](https://relizahub.com) and obtain Instance 
 
 ```
 kubectl create ns reliza-watcher
-kubectl create secret generic reliza-watcher-api-key -n reliza-watcher --from-literal=reliza-api-id=<RELIZA_API_ID> --from-literal=reliza-api-key=<RELIZA_API_ID>
+kubectl create secret generic reliza-watcher-api-key -n reliza-watcher --from-literal=reliza-api-id=<RELIZA_API_ID> --from-literal=reliza-api-key=<RELIZA_API_KEY>
 helm install reliza-watcher -n reliza-watcher ./kubernetes/reliza-watcher-helm
 ```
 
@@ -45,9 +45,9 @@ helm install reliza-watcher -n reliza-watcher ./kubernetes/reliza-watcher-helm -
 
 ## Install Using Helm In A Multi-Namespace Kubernetes Clusters
 
-When you wish to watch different instances deployed in different namespaces of a kubernetes cluster, multiple instances of reliza-watcher are required an can be deployed as follows:
+When you wish to watch different instances deployed in different namespaces of a kubernetes cluster, multiple instances of reliza-watcher are required and can be deployed as follows:
 
-Assume you two instances *instance-A* and *instance-B* on [Reliza Hub](https://relizahub.com) deployed in namespaces *ns-A*  and *ns-B* respectively then:
+Assume you have two instances *instance-A* and *instance-B* on [Reliza Hub](https://relizahub.com) deployed in namespaces *ns-A*  and *ns-B* respectively. Then:
 
 1. Obtain Instance API ID and API Key for the instances *instance-A* and *instance-B* from [Reliza Hub](https://relizahub.com).
 2. Issue following commands replacing <RELIZA_API_ID_FOR_INSTANCE_A> and <RELIZA_API_KEY_INSTANCE_A> with values obtained from Reliza Hub:
