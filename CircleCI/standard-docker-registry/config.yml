@@ -49,7 +49,8 @@ jobs:
           fi
           # push to registry and stream data to Reliza Hub
           echo -n "--artid $IMAGE_NAMESPACE/$IMAGE_NAME:latest " >> reliza_command
-          echo -n "--artbuildid circleci$CIRCLE_BUILD_NUM circle build uri: $CIRCLE_BUILD_URL" >> reliza_command
+          echo -n "--artbuildid circleci$CIRCLE_BUILD_NUM " >> reliza_command
+          echo -n "--artbuilduri $CIRCLE_BUILD_URL " >> reliza_command
           echo -n "--artcimeta circleci " >> reliza_command
           echo -n "--tagkey deployable " >> reliza_command
           echo -n "--tagval true " >> reliza_command
