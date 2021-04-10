@@ -38,7 +38,7 @@ helm install reliza-watcher -n reliza-watcher ./kubernetes/reliza-watcher-helm
 1. If you would like to watch only specific namespaces, say *default* and *myappnamespace*, use the following syntax instead when installing helmchart (comma-separated namespaces as a value for namespace key).
 
 ```
-helm install reliza-watcher -n reliza-watcher ./kubernetes/reliza-watcher-helm --set namespace=default,myappnamespace
+helm install reliza-watcher -n reliza-watcher ./kubernetes/reliza-watcher-helm --set namespace="default\,myappnamespace"
 ```
 
 2. Sender id can be set to any string via *sender* key using --set flag. Data from different senders will be combined on the Reliza Hub in the instance view.
