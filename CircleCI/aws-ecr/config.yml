@@ -47,6 +47,12 @@ jobs:
               # set reliza release status to completed
               echo "--status completed " > reliza_command
           fi
+          extract last release commit and prepare list of commits
+          last_commit=$(docker run --rm relizaio/reliza-cli getlatestrelease -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID --branch $CIRCLE_BRANCH | jq -r ".sourceCodeEntryDetails.commit")
+          if [ ! -z "$last_commit" ]
+          then
+            echo -n "--commits $(git log $last_commit..$CIRCLE_SHA1 --date=iso-strict --pretty='%H|||%ad|||%s' | base64 -w 0) " >> reliza_command
+          fi
           # push to registry and stream data to Reliza Hub
           echo -n "--artid $IMAGE_NAMESPACE/$IMAGE_NAME:latest " >> reliza_command
           echo -n "--artbuildid circleci$CIRCLE_BUILD_NUM " >> reliza_command
@@ -60,7 +66,7 @@ jobs:
           then
             echo -n "--artdigests $docker_sha_256 " >> reliza_command
           fi
-          echo -n "-b $CIRCLE_BRANCH --vcstype git --commit $CIRCLE_SHA1 -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID -v $RLZ_FULL_VER " >> reliza_command
+          echo -n "-b $CIRCLE_BRANCH --vcstype git --commit $CIRCLE_SHA1 --commitmessage "$(git log -1 --pretty='%s')" -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID -v $RLZ_FULL_VER " >> reliza_command
           echo -n "--date $(git log -1 --date=iso-strict --pretty='%ad') " >> reliza_command
           # push versioned tag
           docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$RLZ_SHORT_VER
