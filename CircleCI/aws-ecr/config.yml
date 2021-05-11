@@ -66,7 +66,7 @@ jobs:
           then
             echo -n "--artdigests $docker_sha_256 " >> reliza_command
           fi
-          echo -n "-b $CIRCLE_BRANCH --vcstype git --commit $CIRCLE_SHA1 --commitmessage "$(git log -1 --pretty='%s')" -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID -v $RLZ_FULL_VER " >> reliza_command
+          echo -n "-b $CIRCLE_BRANCH --vcstype git --commit $CIRCLE_SHA1 --commitmessage \"$(git log -1 --pretty='%s')\" -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID -v $RLZ_FULL_VER " >> reliza_command
           echo -n "--date $(git log -1 --date=iso-strict --pretty='%ad') " >> reliza_command
           # push versioned tag
           docker push $IMAGE_NAMESPACE/$IMAGE_NAME:$RLZ_SHORT_VER
@@ -75,7 +75,8 @@ jobs:
           # debug
           cat reliza_command
           # send data to Reliza Hub
-          docker run --rm relizaio/reliza-cli addrelease $(cat reliza_command)
+          echo docker run --rm relizaio/reliza-cli addrelease $(cat reliza_command) > rlz_cmd_exec
+          eval $(cat rlz_cmd_exec)
         no_output_timeout: 10m
 workflows:
   build-and-deploy:
