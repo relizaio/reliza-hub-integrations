@@ -12,9 +12,10 @@ This solution utilizes CronJob running Helm on Kubernetes which is polling Reliz
 kubectl create ns myapp-namespace
 kubectl create ns helm-reliza-cd
 kubectl create secret generic helm-reliza-cd-credentials -n helm-reliza-cd --from-literal=reliza-api-id=<RELIZA_API_ID> --from-literal=reliza-api-key=<RELIZA_API_KEY> --from-literal=reliza-project-id=<RELIZA_PROJECT_ID>
-kubectl create configmap helm-reliza-cd-configmap -n reliza-cd-credentials --from-literal=namespace=myapp-namespace --from-literal=helm-release-name=myapp --from-literal=base-values-file=values.yaml
+kubectl create configmap helm-reliza-cd-configmap -n helm-reliza-cd --from-literal=namespace=myapp-namespace --from-literal=helm-release-name=myapp --from-literal=base-values-file=values.yaml
 kubectl apply -f https://raw.githubusercontent.com/relizaio/reliza-hub-integrations/master/Helm-cd-with-Reliza/helm_configmap.yaml -n helm-reliza-cd
 kubectl apply -f https://raw.githubusercontent.com/relizaio/reliza-hub-integrations/master/Helm-cd-with-Reliza/helmcron.yaml -n helm-reliza-cd
+kubectl create clusterrolebinding helm-reliza-binding --clusterrole=helm-reliza-cr --serviceaccount=helm-reliza-cd:helm-reliza-sa
 ```
 
 ## Notes
