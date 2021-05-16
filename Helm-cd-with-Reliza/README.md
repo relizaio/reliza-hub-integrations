@@ -15,7 +15,7 @@ kubectl create secret generic helm-reliza-cd-credentials -n helm-reliza-cd --fro
 kubectl create configmap helm-reliza-cd-configmap -n helm-reliza-cd --from-literal=namespace=myapp-namespace --from-literal=helm-release-name=myapp --from-literal=base-values-file=values.yaml
 kubectl apply -f https://raw.githubusercontent.com/relizaio/reliza-hub-integrations/master/Helm-cd-with-Reliza/helm_configmap.yaml -n helm-reliza-cd
 kubectl apply -f https://raw.githubusercontent.com/relizaio/reliza-hub-integrations/master/Helm-cd-with-Reliza/helmcron.yaml -n helm-reliza-cd
-kubectl create clusterrolebinding helm-reliza-binding --clusterrole=helm-reliza-cr --serviceaccount=helm-reliza-cd:helm-reliza-sa
+kubectl create clusterrolebinding helm-reliza-binding --clusterrole=helm-reliza-cr --serviceaccount=helm-reliza-cd:helm-reliza-sa --dry-run=client -o yaml | kubectl apply -f -
 ```
 
 ## Notes
