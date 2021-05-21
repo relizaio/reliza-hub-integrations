@@ -13,7 +13,7 @@ metadata:
     app.kubernetes.io/name: reliza-watcher-role
   name: reliza-watcher-cr
 rules:
-- apiGroups: [""]
+- apiGroups: ["*"]
   resources: ["pods", "namespaces"]
   verbs: ["get", "watch", "list"]
 ---

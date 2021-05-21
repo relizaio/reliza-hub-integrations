@@ -5,6 +5,6 @@ metadata:
     app.kubernetes.io/name: {{ include "reliza-watcher.fullname" . }}-{{ .Release.Namespace }}-cr
   name: {{ include "reliza-watcher.fullname" . }}-{{ .Release.Namespace }}-cr
 rules:
-- apiGroups: [""]
+- apiGroups: ["*"]
   resources: ["pods", "namespaces"]
   verbs: ["get", "watch", "list"]
