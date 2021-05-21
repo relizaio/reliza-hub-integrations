@@ -10,7 +10,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   labels:
-    app.kubernetes.io/name: reliza-watcher-role
+    app.kubernetes.io/name: reliza-watcher-cr
   name: reliza-watcher-cr
 rules:
 - apiGroups: ["*"]
@@ -27,7 +27,7 @@ metadata:
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: ClusterRole
-  name: reliza-watcher-role
+  name: reliza-watcher-cr
 subjects:
 - kind: ServiceAccount
   name: reliza-watcher-sa
