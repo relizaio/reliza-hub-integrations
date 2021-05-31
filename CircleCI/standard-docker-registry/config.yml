@@ -44,8 +44,8 @@ jobs:
             . || exit_code=$(echo $?)
           if [ $exit_code -eq 0 ]
           then
-              # set reliza release status to completed
-              echo "--status completed " > reliza_command
+              # set reliza release status to complete
+              echo "--status complete " > reliza_command
           fi
           # extract last release commit and prepare list of commits
           last_commit=$(docker run --rm relizaio/reliza-cli getlatestrelease -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID --branch $CIRCLE_BRANCH | jq -r ".sourceCodeEntryDetails.commit")
