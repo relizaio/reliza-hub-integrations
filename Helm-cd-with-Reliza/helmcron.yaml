@@ -89,7 +89,7 @@ spec:
               valueFrom:
                 configMapKeyRef:
                   name: helm-reliza-cd-configmap
-                  key: base-values-file
+                  key: helm-release-name
             - name: NAMESPACE_TO_DEPLOY
               valueFrom:
                 configMapKeyRef:
