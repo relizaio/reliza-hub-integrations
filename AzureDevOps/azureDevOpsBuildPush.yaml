@@ -1,0 +1,112 @@
+# Build and push container image, Azure DevOps
+# https://docs.microsoft.com/azure/devops/pipelines/languages/docker
+​
+trigger:
+- main
+​
+resources:
+- repo: self
+​
+variables:
+  imageRepository: 'myrepository'
+  containerRegistry: 'myregistry.azurecr.io'
+  dockerfilePath: '$(Build.SourcesDirectory)/Dockerfile'
+  tag: '$(Build.BuildId)'
+  branch: '$(Build.SourceBranchName)'
+  commit: '$(Build.SourceVersion)'
+  buildUri: '$(Build.BuildUri)'
+  dockerRegistryServiceConnection: my-service-connection
+  relizaApiKeyId: PROJECT__id
+  relizaApiKey: apikey
+  # Agent VM image name
+  vmImageName: 'ubuntu-latest'
+  
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    pool:
+      vmImage: $(vmImageName)
+    steps:
+    # Record build start
+    - bash: |
+        BUILD_START=$(date -Iseconds)
+        echo "##vso[task.setvariable variable=BUILD_START]$BUILD_START"
+    # Checkout current repository
+    - checkout: self
+    # Get Version From Reliza Hub | Extract Last Release Commit And Prepare List Of Commits
+    - bash: |
+        mkdir -p $(Pipeline.Workspace)/variables
+        # extract last release commit and prepare list of commits
+        last_commit=$(docker run --rm relizaio/reliza-cli getlatestrelease -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID --branch $(branch) | jq -r ".sourceCodeEntryDetails.commit")
+        echo "Last Commit: $last_commit"
+        if [[ ! -z "$last_commit" ]]
+        then
+          echo -n "--commits $(git log $last_commit..$(commit) --date=iso-strict --pretty='%H|||%ad|||%s' | base64 -w 0) " > $(Pipeline.Workspace)/variables/GET_VERSION
+        fi
+        echo "Getting version from Reliza Hub"
+        echo -n "-k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID -b $(branch) --metadata azuredevops$(tag) \
+          --commit $(commit) --commitmessage \"$(git log -1 --pretty='%s')\" --date $(git log -1 --date=iso-strict --pretty='%ad') --vcstype git " >> $(Pipeline.Workspace)/variables/GET_VERSION
+        # debug
+        echo "DEBUG GET VERSION COMMAND: $(cat $(Pipeline.Workspace)/variables/GET_VERSION)"
+        # get version
+        echo -n "docker run --rm relizaio/reliza-cli getversion $(cat $(Pipeline.Workspace)/variables/GET_VERSION) " > $(Pipeline.Workspace)/variables/GET_VERSION_EXEC
+        reliza_ver=$(eval "$(cat $(Pipeline.Workspace)/variables/GET_VERSION_EXEC)")
+        full_ver=$(echo $reliza_ver | jq -r ".version")
+        echo "extracted full version: $full_ver"
+        short_ver=$(echo $reliza_ver | jq -r ".dockerTagSafeVersion")
+        echo "extracted docker tag safe version: $short_ver"
+        echo "$full_ver" > $(Pipeline.Workspace)/variables/RLZ_FULL_VER
+        echo "$short_ver" > $(Pipeline.Workspace)/variables/RLZ_SHORT_VER
+      env: 
+        RELIZA_API_KEY: $(relizaApiKey)
+        RELIZA_API_KEY_ID: $(relizaApiKeyId)
+      displayName: Get Version From Reliza Hub
+    - task: Docker@2
+      displayName: Login to ACR
+      inputs:
+        command: login
+        containerRegistry: $(dockerRegistryServiceConnection)
+    - bash: echo "--status rejected " > $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+      displayName: Instantiate Reliza Status as Rejected to handle possible build failure
+    - bash: |
+        exit_code=0
+        docker build \
+          --build-arg CI_ENV=azuredevops$(tag) --build-arg GIT_COMMIT=$(commit) --build-arg GIT_BRANCH=$(branch) \
+          --build-arg VERSION=$(cat $(Pipeline.Workspace)/variables/RLZ_FULL_VER) -f ./Dockerfile \
+        -t $(containerRegistry)/$(imageRepository):$(cat $(Pipeline.Workspace)/variables/RLZ_SHORT_VER) -t $(containerRegistry)/$(imageRepository):latest . || exit_code=$(echo $?)
+        if [[ $exit_code -eq 0 ]]
+        then
+            # set reliza release status to complete
+            echo "--status complete " > $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        fi
+        # push to registry and stream metadata to Reliza Hub
+        echo -n "--artid $(containerRegistry)/$(imageRepository):latest " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        echo -n "--artbuildid azuredevops$(tag) " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        echo -n "--artbuilduri $(buildUri) " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        echo -n "--artcimeta azuredevops " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        echo -n "--tagkey deployable " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        echo -n "--tagval true " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        echo -n "--arttype Docker " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        echo "DEBUG push latest: docker push $(containerRegistry)/$(imageRepository):latest"
+        docker_sha_256=$(docker push $(containerRegistry)/$(imageRepository):latest | grep sha256 | cut -f 3 -d ' ')
+        if [[ $docker_sha_256 != "" ]]
+        then
+          echo "DEBUG docker_sha_256 $cat($docker_sha_256)"
+          echo -n "--artdigests $docker_sha_256 " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        fi
+        echo -n "-b $(branch) -k $RELIZA_API_KEY -i $RELIZA_API_KEY_ID -v $(cat $(Pipeline.Workspace)/variables/RLZ_FULL_VER) " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        # push versioned tag
+        echo "DEBUG versioned tag: $(containerRegistry)/$(imageRepository):$(cat $(Pipeline.Workspace)/variables/RLZ_SHORT_VER)"
+        docker push $(containerRegistry)/$(imageRepository):$(cat $(Pipeline.Workspace)/variables/RLZ_SHORT_VER)
+        echo -n "--datestart $BUILD_START " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        echo -n "--dateend $(date -Iseconds) " >> $(Pipeline.Workspace)/variables/RELIZA_COMMAND
+        # debug
+        echo "DEBUG reliza command: $(cat $(Pipeline.Workspace)/variables/RELIZA_COMMAND)"
+        # send data to Reliza Hub
+        echo docker run --rm relizaio/reliza-cli addrelease $(cat $(Pipeline.Workspace)/variables/RELIZA_COMMAND) > $(Pipeline.Workspace)/variables/RLZ_CMD_EXEC
+        eval $(cat $(Pipeline.Workspace)/variables/RLZ_CMD_EXEC)
+      env: 
+        RELIZA_API_KEY: $(relizaApiKey)
+        RELIZA_API_KEY_ID: $(relizaApiKeyId)
+      displayName: Build and push image to ACR
