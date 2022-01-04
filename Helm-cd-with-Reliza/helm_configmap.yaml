@@ -48,7 +48,7 @@ data:
     fi
 
     cp work-values/values.yaml work-values/values-prev.yaml || echo "no prev values file present yet" > work-values/values-prev.yaml
-    reliza-cli replacetags -i $1 -k $2 --infile work-values/$helm_chart_name/$4 --outfile work-values/values.yaml
+    reliza-cli replacetags -i $1 -k $2 --infile work-values/$helm_chart_name/$4 --outfile work-values/values.yaml --namespace $6
 
     values_diff=$(diff work-values/values.yaml work-values/values-prev.yaml | wc -l)
 
