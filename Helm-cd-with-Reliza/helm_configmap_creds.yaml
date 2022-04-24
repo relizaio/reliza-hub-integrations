@@ -39,7 +39,11 @@ data:
 
     # use special oci commands if we are dealing with oci repo - currently coding azurecr
     use_oci=false
-    case "$helm_chart_uri" in *azurecr.io*) use_oci=true ;; *       ) use_oci=false ;; esac
+    case "$helm_chart_uri" in 
+      *azurecr.io*) use_oci=true ;;
+      *.ecr.*) use_oci=true ;;
+      *       ) use_oci=false ;;
+    esac
     echo "debug use_oci = $use_oci"
     if [ "$use_oci" = "false" ]
     then
