@@ -64,12 +64,12 @@ spec:
             image: amazon/aws-cli
             command: ['/bin/bash', '-c', '/usr/local/bin/aws ecr get-login-password --region us-east-1 > /apps/work-values/aws']
             env:
-            - name: HELM_REPO_LOGIN
+            - name: AWS_ACCESS_KEY_ID
               valueFrom:
                 secretKeyRef:
                   name: helm-reliza-cd-credentials
                   key: helm-login
-            - name: HELM_REPO_PASS
+            - name: AWS_SECRET_ACCESS_KEY
               valueFrom:
                 secretKeyRef:
                   name: helm-reliza-cd-credentials
