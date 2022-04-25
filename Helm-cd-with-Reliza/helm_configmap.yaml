@@ -63,12 +63,11 @@ data:
     if [ $values_diff -gt 0 ] || [ "install" == "$helm_command" ] || [ "$helm_chart_version" != "$last_version" ]
     then
       echo "Update required, performing..."
-      helm $helm_command $5 -n $6 -f work-values/values.yaml repo/$helm_chart_name --version $helm_chart_version
-      
-      # stream helm chart version to Reliza Hub
-      # compute sha256sum 
+      # compute sha256sum for the helm chart
       sha256digest="sha256:$(sha256sum work-values/*.tgz | cut -f 1 -d ' ')"
-      # stream
+      # execute helm
+      helm $helm_command $5 -n $6 -f work-values/values.yaml repo/$helm_chart_name --version $helm_chart_version
+      # stream helm chart version to Reliza Hub
       reliza-cli instdata -i $1 -k $2 --images "$sha256digest" --namespace $6 --sender helmsender$6
       # save version for future use
       echo $helm_chart_version > work-values/last_version
