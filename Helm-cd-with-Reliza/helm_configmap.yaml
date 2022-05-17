@@ -65,8 +65,15 @@ data:
       echo "Update required, performing..."
       # compute sha256sum for the helm chart
       sha256digest="sha256:$(sha256sum work-values/*.tgz | cut -f 1 -d ' ')"
+      # set desired app version
+      appVersion=$(reliza-cli exportinst -i $1 -k $2 --namespace $6 | jq -r '.components[] | select(.type | contains("application")) | .version')
+      if [ ! -z "$appVersion" ] && [ "null" != "$appVersion" ]
+      then
+        sed -i "s/^appVersion:.*$/appVersion: $appVersion/" work-values/$helm_chart_name/Chart.yaml
+      fi
       # execute helm
-      helm $helm_command $5 -n $6 -f work-values/values.yaml repo/$helm_chart_name --version $helm_chart_version
+      helm $helm_command $5 -n $6 -f work-values/values.yaml work-values/$helm_chart_name
+
       # stream helm chart version to Reliza Hub
       reliza-cli instdata -i $1 -k $2 --images "$sha256digest" --namespace $6 --sender helmsender$6
       # save version for future use
