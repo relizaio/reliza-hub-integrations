@@ -78,7 +78,7 @@ spec:
             - mountPath: "/apps/work-values"
               name: helm-update-data
           containers:
-          - command: ['/bin/sh', '-c', 'export HELM_REPO_PASS=$(cat /apps/work-values/aws); cp /apps/script/helm.sh /apps/ && chmod 0700 /apps/helm.sh && /apps/helm.sh $RELIZA_API_ID $RELIZA_API_KEY $RELIZA_HUB_PROJECT_ID $BASE_VALUES_FILE $HELM_RELEASE_NAME $NAMESPACE_TO_DEPLOY $HELM_REPO_LOGIN $HELM_REPO_PASS']
+          - command: ['/bin/sh', '-c', 'export HELM_REPO_PASS=$(cat /apps/work-values/aws); cp /apps/script/helm.sh /apps/ && chmod 0700 /apps/helm.sh && /apps/helm.sh $RELIZA_API_ID $RELIZA_API_KEY $RELIZA_HUB_PROJECT_ID $BASE_VALUES_FILE $HELM_RELEASE_NAME $NAMESPACE_TO_DEPLOY $HELM_REPO_LOGIN $HELM_REPO_PASS $RELIZA_HUB_URI']
 #          - command: ['sleep', '3000']
             image: relizaio/helm-reliza-cli
             name: helmtest
