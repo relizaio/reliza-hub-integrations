@@ -95,6 +95,11 @@ spec:
                 configMapKeyRef:
                   name: helm-reliza-cd-configmap
                   key: namespace
+            - name: RELIZA_HUB_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: helm-reliza-cd-configmap
+                  key: RELIZA_HUB_URI
             volumeMounts:
             - mountPath: "/apps/script"
               name: helm-shell-script
