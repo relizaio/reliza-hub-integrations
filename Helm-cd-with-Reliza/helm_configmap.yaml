@@ -15,17 +15,17 @@ data:
     # $5 - Helm release name
     # $6 - Namespace to install release
     # $7 - Reliza Hub URI, defaults to https://app.relizahub.com
-    
-    relizaHubUri=https://app.relizahub.com
-    if [ ! -z "$7" ]
-    then
-      relizaHubUri=$7
-    fi
 
     if [ "$#" -lt 6 ]
     then
       echo "Usage: reliza_instance_api_id reliza_instance_api_id helm_chart_project_id name_path_of_values_file helm_release_name namespace"
       exit 1
+    fi
+
+    relizaHubUri=https://app.relizahub.com
+    if [ ! -z "$7" ]
+    then
+      relizaHubUri=$7
     fi
     
     mkdir -p work-values
