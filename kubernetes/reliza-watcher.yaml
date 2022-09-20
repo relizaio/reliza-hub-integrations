@@ -58,12 +58,17 @@ spec:
         imagePullPolicy: Always
         env:
         - name: HUB_URI
-          value: https://app.relizahub.com
+          valueFrom:
+            configMapKeyRef:
+              name: reliza-watcher-configmap
+              key: RELIZA_HUB_URI
+              optional: true
         - name: NAMESPACE
           valueFrom:
             configMapKeyRef:
               name: reliza-watcher-configmap
               key: namespace
+              optional: true
         - name: SENDER_ID
           valueFrom:
             configMapKeyRef:
