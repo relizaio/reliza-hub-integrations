@@ -83,7 +83,16 @@ data:
     fi
 
     cp work-values/values-diff.yaml work-values/values-prev-diff.yaml || echo "no prev values file present yet" > work-values/values-prev-diff.yaml
-    reliza-cli replacetags -u $relizaHubUri -i $1 -k $2 --infile work-values/$helm_chart_name/$4 --outfile work-values/values-diff.yaml --fordiff=true --resolveprops=true --namespace $6
+
+    # Override base values
+    if [ "$4" != "values.yaml" ]
+    then
+      reliza-cli helmvalues work-values/$helm_chart_name -f $4 > work-values/work-values.yaml
+    else 
+      cp work-values/$helm_chart_name/values.yaml work-values/work-values.yaml
+    fi
+
+    reliza-cli replacetags -u $relizaHubUri -i $1 -k $2 --infile work-values/work-values.yaml --outfile work-values/values-diff.yaml --fordiff=true --resolveprops=true --namespace $6
 
     values_diff=$(diff work-values/values-diff.yaml work-values/values-prev-diff.yaml | wc -l)
 
@@ -107,7 +116,7 @@ data:
         sed -i "s/^appVersion:.*$/appVersion: $appVersion/" work-values/$helm_chart_name/Chart.yaml
       fi
       # execute helm
-      reliza-cli replacetags -u $relizaHubUri -i $1 -k $2 --infile work-values/$helm_chart_name/$4 --outfile work-values/values.yaml --resolveprops=true --namespace $6
+      reliza-cli replacetags -u $relizaHubUri -i $1 -k $2 --infile work-values/work-values.yaml --outfile work-values/values.yaml --resolveprops=true --namespace $6
       helm $helm_command $5 -n $6 -f work-values/values.yaml work-values/$helm_chart_name
     else
       echo "No diff in values, no upgrade will be performed"
