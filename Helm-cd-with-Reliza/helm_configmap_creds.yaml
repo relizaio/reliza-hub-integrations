@@ -74,6 +74,8 @@ data:
       else
         helm pull oci://$helm_chart_identifier --version $helm_chart_version -d work-values/
       fi
+      # compute sha256sum for the helm chart
+      sha256digest="sha256:$(sha256sum work-values/*.tgz | cut -f 1 -d ' ')"
       cd work-values && tar -xzvf *.tgz && cd ..
       # helm pull repo/$helm_chart_name --version $helm_chart_version --untar --untardir work-values/
       # save version for future use
@@ -107,8 +109,6 @@ data:
     if [ $values_diff -gt 0 ] || [ "install" == "$helm_command" ] || [ "$helm_chart_version" != "$last_version" ]
     then
       echo "Update required, performing..."
-      # compute sha256sum for the helm chart
-      sha256digest="sha256:$(sha256sum work-values/*.tgz | cut -f 1 -d ' ')"
       # set desired app version
       appVersion=$(reliza-cli exportinst -u $relizaHubUri -i $1 -k $2 --namespace $6 | jq -r '.components[] | select(.type | contains("application")) | .version')
       if [ ! -z "$appVersion" ] && [ "null" != "$appVersion" ]
