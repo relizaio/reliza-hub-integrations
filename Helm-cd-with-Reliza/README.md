@@ -2,6 +2,8 @@
 
 This solution utilizes CronJob running Helm on Kubernetes which is polling Reliza Hub for latest images and latest approved version of helm chart to use.
 
+Tutorial - https://worklifenotes.com/2021/05/22/helm-cd-with-reliza-hub-tutorial/
+
 ## Install
 
 1. Have your project publishing Helm chart registered on Reliza Hub and obtain its project id
