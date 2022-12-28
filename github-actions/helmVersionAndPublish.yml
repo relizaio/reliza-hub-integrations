@@ -1,0 +1,24 @@
+on: [push]
+
+name: Build And Push Helm Chart And Submit Metadata To Reliza Hub
+
+jobs:
+  build-helm:
+    name: Build And Push Helm Chart
+    runs-on: ubuntu-latest
+    env:
+      HELM_CHART_REPO: <https-chart-repo>
+      HELM_CHART_NAME: chart_name
+      DIR: chart_dir
+    steps:
+      - name: RelizaHub Build And Submit Release metadata action
+        uses: relizaio/reliza-helm-action@1.0
+        with:
+          repository_username: ${{ secrets.DOCKER_LOGIN }}
+          repository_password: ${{ secrets.DOCKER_TOKEN }}
+          repository_host: $HELM_CHART_REPO
+          helm_chart_name: $HELM_CHART_NAME
+          reliza_api_id: ${{ secrets.RELIZA_HELM_API_ID }}
+          reliza_api_key: ${{ secrets.RELIZA_HELM_API_KEY }}
+          path: $DIR
+      
