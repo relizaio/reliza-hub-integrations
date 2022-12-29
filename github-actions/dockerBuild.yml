@@ -6,17 +6,13 @@ jobs:
   build:
     name: Build And Push
     runs-on: ubuntu-latest
-    env:
-      IMAGE_NAMESPACE: ${{ secrets.IMAGE_NAMESPACE }}
-      IMAGE_NAME: ${{ secrets.IMAGE_NAME }}
     steps:
       - name: RelizaHub Build And Submit Release metadata action
-        uses: relizaio/reliza-docker-action@1.0
+        uses: relizaio/reliza-docker-action@1.1
         with:
           registry_username: ${{ secrets.DOCKER_LOGIN }}
           registry_password: ${{ secrets.DOCKER_TOKEN }}
-          image_namespace: $IMAGE_NAMESPACE
-          image_name: $IMAGE_NAME
+          image_namespace: ${{ secrets.IMAGE_NAMESPACE }}
+          image_name: ${{ secrets.IMAGE_NAME }}
           reliza_api_id: ${{ secrets.RELIZA_API_ID }}
           reliza_api_key: ${{ secrets.RELIZA_API_KEY }}
-      
