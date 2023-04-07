@@ -12,7 +12,7 @@ jobs:
       DIR: chart_dir
     steps:
       - name: RelizaHub Build And Submit Release metadata action
-        uses: relizaio/reliza-helm-action@1.0
+        uses: relizaio/reliza-helm-action@1.6
         with:
           repository_username: ${{ secrets.DOCKER_LOGIN }}
           repository_password: ${{ secrets.DOCKER_TOKEN }}
